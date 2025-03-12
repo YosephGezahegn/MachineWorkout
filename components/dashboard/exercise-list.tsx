@@ -12,6 +12,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface ExerciseListProps {
   limit?: number;
@@ -20,10 +22,12 @@ interface ExerciseListProps {
 export function ExerciseList({ limit }: ExerciseListProps) {
   const [loading, setLoading] = useState(true);
   const [exercises, setExercises] = useState<any[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchExercises = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+     
       if (!session) return;
 
       let query = supabase
@@ -40,7 +44,9 @@ export function ExerciseList({ limit }: ExerciseListProps) {
         query = query.limit(limit);
       }
 
+
       const { data } = await query;
+      console.log("Exercises Data---->", data);
 
       if (data) {
         setExercises(data);
@@ -55,6 +61,7 @@ export function ExerciseList({ limit }: ExerciseListProps) {
   if (loading) {
     return <Loader2 className="h-4 w-4 animate-spin" />;
   }
+
 
   return (
     <Table>
@@ -81,6 +88,11 @@ export function ExerciseList({ limit }: ExerciseListProps) {
               {exercise.sets && exercise.repetitions && 
                 `${exercise.sets}×${exercise.repetitions} `}
               {exercise.distance_meters && `${exercise.distance_meters}m`}
+            </TableCell>
+            <TableCell>
+              <Button variant="outline" size="sm" onClick={() => router.push(`/workout/detail/${exercise.id}`)}>
+                View Details
+              </Button>
             </TableCell>
           </TableRow>
         ))}

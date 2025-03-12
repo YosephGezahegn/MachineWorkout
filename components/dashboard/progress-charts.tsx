@@ -88,8 +88,18 @@ export function ProgressCharts() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                  <XAxis 
+                    dataKey="date"
+                    allowDecimals={false}
+                    allowDataOverflow={false}
+                    allowDuplicatedCategory={true}
+                  />
+                  <YAxis 
+                    allowDecimals={true}
+                    allowDataOverflow={false}
+                    domain={['auto', 'auto']}
+                    scale="auto"
+                  />
                   <Tooltip />
                   <Line
                     type="monotone"
@@ -114,8 +124,18 @@ export function ProgressCharts() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                  <XAxis 
+                    dataKey="date"
+                    allowDecimals={false}
+                    allowDataOverflow={false}
+                    allowDuplicatedCategory={true}
+                  />
+                  <YAxis 
+                    allowDecimals={true}
+                    allowDataOverflow={false}
+                    domain={['auto', 'auto']}
+                    scale="auto"
+                  />
                   <Tooltip />
                   <Line
                     type="monotone"
@@ -140,8 +160,18 @@ export function ProgressCharts() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                  <XAxis 
+                    dataKey="date"
+                    allowDecimals={false}
+                    allowDataOverflow={false}
+                    allowDuplicatedCategory={true}
+                  />
+                  <YAxis 
+                    allowDecimals={true}
+                    allowDataOverflow={false}
+                    domain={['auto', 'auto']}
+                    scale="auto"
+                  />
                   <Tooltip />
                   <Line
                     type="monotone"

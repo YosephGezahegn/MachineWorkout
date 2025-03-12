@@ -8,28 +8,16 @@ import { DashboardHeader } from "@/components/dashboard/header";
 import { WorkoutSummary } from "@/components/dashboard/workout-summary";
 import { ExerciseList } from "@/components/dashboard/exercise-list";
 import { ProgressCharts } from "@/components/dashboard/progress-charts";
-import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { History } from "@/components/workout/History";
+import Link from "next/link";
+import { useAuth } from "@/hooks/use-auth";
+import { withAuth } from "@/hooks/use-auth";
 
-export default function Dashboard() {
+function Dashboard() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/auth/login");
-        return;
-      }
-      setUser(session.user);
-      setLoading(false);
-    };
-
-    checkUser();
-  }, [router]);
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -41,13 +29,14 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader user={user} />
+      <DashboardHeader user={user || undefined} />
       <main className="container mx-auto px-4 py-6">
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="workouts">Workouts</TabsTrigger>
             <TabsTrigger value="progress">Progress</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -60,12 +49,25 @@ export default function Dashboard() {
                   <WorkoutSummary />
                 </CardContent>
               </Card>
-              <Card className="md:col-span-2">
+              <Card>
                 <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
+                  <CardTitle>Weekly Progress</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ExerciseList limit={5} />
+                  <ProgressCharts />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Link href="/workout/new">
+                    <Button className="w-full">Start New Workout</Button>
+                  </Link>
+                  <Link href="/profile">
+                    <Button variant="outline" className="w-full">View Profile</Button>
+                  </Link>
                 </CardContent>
               </Card>
             </div>
@@ -75,9 +77,12 @@ export default function Dashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Workout History</CardTitle>
-                <Button onClick={() => router.push("/workout/new")}>
-                  Start New Workout
-                </Button>
+                <Link href="/workout/new">
+                  <Button>Start New Workout</Button>
+                </Link>
+                <Link href="/workout/history">
+                  <Button>View History</Button>
+                </Link>
               </CardHeader>
               <CardContent>
                 <ExerciseList />
@@ -95,8 +100,20 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </TabsContent>
+          <TabsContent value="history">
+            <Card>
+              <CardHeader>
+                <CardTitle>History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <History />
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
     </div>
   );
 }
+
+export default withAuth(Dashboard);

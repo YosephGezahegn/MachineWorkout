@@ -2,18 +2,20 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase/client";
 
 export default function SignUp() {
   const router = useRouter();
   const { toast } = useToast();
+  const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -26,23 +28,25 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-          },
-        },
-      });
+      const { error, data } = await signUp(formData.email, formData.password);
 
       if (error) throw error;
 
+      // Update user metadata
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          full_name: formData.fullName,
+        }
+      });
+
+      if (updateError) throw updateError;
+
+      // Create user profile if needed
       const { error: profileError } = await supabase
         .from("users")
         .insert([
           {
-            id: (await supabase.auth.getUser()).data.user?.id,
+            id: data?.user?.id,
             full_name: formData.fullName,
             email: formData.email,
           },
@@ -55,7 +59,7 @@ export default function SignUp() {
         description: "Your account has been created successfully.",
       });
 
-      router.push("/dashboard");
+      // No need to redirect here as the useAuth hook handles it
     } catch (error: any) {
       toast({
         title: "Error",
@@ -70,14 +74,14 @@ export default function SignUp() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>
+        <CardHeader>
+          <CardTitle className="text-2xl text-center">Create an account</CardTitle>
+          <CardDescription className="text-center">
             Enter your details to create your account
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSignUp}>
-          <CardContent className="space-y-4">
+        <CardContent>
+          <form onSubmit={handleSignUp} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>
               <Input
@@ -95,7 +99,7 @@ export default function SignUp() {
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="your.email@example.com"
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
@@ -108,7 +112,7 @@ export default function SignUp() {
               <Input
                 id="password"
                 type="password"
-                placeholder="Create a password"
+                placeholder="Create a secure password"
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
@@ -116,20 +120,26 @@ export default function SignUp() {
                 required
               />
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create account
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                "Sign Up"
+              )}
             </Button>
-            <p className="text-sm text-muted-foreground text-center">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="text-primary hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-2">
+          <div className="text-sm text-center text-muted-foreground">
+            Already have an account?{" "}
+            <Link href="/auth/login" className="text-primary hover:underline">
+              Login
+            </Link>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   );
